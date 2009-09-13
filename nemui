@@ -1,0 +1,104 @@
+#!/usr/bin/env ruby
+
+require 'singleton'
+require 'rubygems'
+require 'dbus'
+
+class InterfaceMismatchError < Exception; end
+
+module NEMUI
+  NM_SERVICE = "org.freedesktop.NetworkManager"
+  
+  module Interface
+    NETWORK_MANAGER = "org.freedesktop.NetworkManager"
+    DEVICE = "org.freedesktop.NetworkManager.Device"
+    WIRED = "org.freedesktop.NetworkManager.Device.Wired"
+    WIRELESS = "org.freedesktop.NetworkManager.Device.Wireless"
+    PROPERTIES = "org.freedesktop.DBus.Properties"
+  end
+
+  # @proxy_obj, @default_iface required
+  module Properties
+    def properties
+      if @proxy_obj.has_iface?(Interface::PROPERTIES)
+        @prop_iface = @proxy_obj[Interface::PROPERTIES]
+      else
+        raise InterfaceMismatchError.new(Interface::PROPERTIES)
+      end
+    end
+
+    def [](prop_name)
+      self.properties.Get(@default_iface, prop_name.to_s)
+    end
+  end
+
+  class NetworkManager
+    include Singleton
+    include Properties
+
+    PATH = "/org/freedesktop/NetworkManager"
+    
+    def initialize
+      bus = DBus::SystemBus.instance
+      service = bus.service(NM_SERVICE)
+      @default_iface = Interface::NETWORK_MANAGER
+      @proxy_obj = service.object(PATH)
+      @proxy_obj.introspect
+      
+      @nm_iface = @proxy_obj[Interface::NETWORK_MANAGER]
+    end
+
+    def call(method, *args)
+      @nm_iface.__send__(method, *args)
+    end
+
+    def get_devices()
+      devices = @nm_iface.GetDevices()[0].map do |dev_path|
+        begin
+          Device.create(dev_path)
+        rescue NotImplementedDevice
+          nil
+        end
+      end
+    end
+    
+    class Device
+      class NotImplementedDevice < Exception; end
+      
+      def self.create(path)
+        bus = DBus::SystemBus.instance
+        service = bus.service(NM_SERVICE)
+        obj = service.object(path)
+        obj.introspect
+        
+        if obj.has_iface?(Interface::WIRED)
+          Wired.new(obj)
+        elsif obj.has_iface?(Interface::WIRELESS)
+          Wireless.new(obj)
+        else
+          raise NotImplementedDevice.new(path)
+        end
+      end
+
+      class Wired
+        include Properties
+
+        def initialize(obj)
+          @proxy_obj = obj
+          @default_iface = Interface::WIRED
+          @wired_iface = @proxy_obj[Interface::NETWORK_MANAGER]
+        end
+      end
+
+      class Wireless
+        include Properties
+
+        def initialize(obj)
+          @proxy_obj = obj
+          @default_iface = Interface::WIRELESS
+          @wired_iface = @proxy_obj[Interface::NETWORK_MANAGER]
+        end
+      end
+    end
+  end
+end
