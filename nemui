@@ -98,6 +98,16 @@ module NEMUI
         end
       end
     end
+
+    def wake(wak = true)
+      @nm_iface.Sleep(!wak)
+      nil
+    end
+
+    def sleep(slp = true)
+      self.wake(!slp)
+      nil
+    end
     
     class Device
       class NotImplementedDevice < Exception; end
