@@ -1,3 +1,0 @@
-http://projects.gnome.org/NetworkManager/developers/spec.html
-
-
