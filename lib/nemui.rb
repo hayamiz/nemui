@@ -154,4 +154,9 @@ module NEMUI
       end
     end
   end
+
+  class NetworkManagerSettings
+    class Connection
+    end
+  end
 end
