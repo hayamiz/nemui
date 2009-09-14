@@ -14,7 +14,7 @@ class NetworkManagerConnectionActiveTest < Test::Unit::TestCase
     end
 
     conns = @nm.active_connections
-    @conn = 
+    @aconn = 
       if conns.empty?
         nil
       else
@@ -27,21 +27,22 @@ class NetworkManagerConnectionActiveTest < Test::Unit::TestCase
   # end
 
   def test_properties
-    return unless @conn
-    assert_instance_of(String, @conn.service_name)
-    assert(@conn.devices)
-    assert(@conn.specific_object)
-    assert_boolean(@conn.default)
-    assert(NEMUI::NetworkManager::Connection::Active::NM_ACTIVE_CONNECTION_STATE_UNKNOWN == @conn.state ||
-           NEMUI::NetworkManager::Connection::Active::NM_ACTIVE_CONNECTION_STATE_ACTIVATING == @conn.state ||
-           NEMUI::NetworkManager::Connection::Active::NM_ACTIVE_CONNECTION_STATE_ACTIVATED == @conn.state)
-    assert_instance_of(NEMUI::NetworkManagerSettings::Connection, @conn.connection)
-    @conn.devices.each do |dev| 
+    return unless @aconn
+    assert_instance_of(String, @aconn.service_name)
+    assert(@aconn.devices)
+    assert(@aconn.specific_object)
+    assert_boolean(@aconn.default)
+    active_klass = NEMUI::NetworkManager::Connection::Active
+    assert(active_klass::NM_ACTIVE_CONNECTION_STATE_UNKNOWN == @aconn.state ||
+           active_klass::NM_ACTIVE_CONNECTION_STATE_ACTIVATING == @aconn.state ||
+           active_klass::NM_ACTIVE_CONNECTION_STATE_ACTIVATED == @aconn.state)
+    assert_instance_of(NEMUI::NetworkManagerSettings::Connection, @aconn.connection)
+    @aconn.devices.each do |dev| 
       assert_kind_of(NEMUI::NetworkManager::Device, dev)
     end
   end
 
   def test_state
-    return unless @conn
+    return unless @aconn
   end
 end
