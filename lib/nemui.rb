@@ -7,6 +7,7 @@ require 'dbus'
 require 'nemui/interface'
 require 'nemui/properties'
 require 'nemui/network_manager'
+require 'nemui/network_manager_settings'
 
 class String
   def camelize
