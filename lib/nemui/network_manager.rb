@@ -96,9 +96,13 @@ module NEMUI
     end
 
     module Connection
-      include Properties
-      
       class Active
+        include Properties
+
+        NM_ACTIVE_CONNECTION_STATE_UNKNOWN = 0
+        NM_ACTIVE_CONNECTION_STATE_ACTIVATING = 1
+        NM_ACTIVE_CONNECTION_STATE_ACTIVATED = 2
+      
         def self.create(path)
           bus = DBus::SystemBus.instance
           service = bus.service(NM_SERVICE)
