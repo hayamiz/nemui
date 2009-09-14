@@ -73,6 +73,12 @@ module NEMUI
     include Singleton
     include Properties
 
+    NM_STATE_UNKNOWN = 0
+    NM_STATE_ASLEEP = 1
+    NM_STATE_CONNECTING = 2
+    NM_STATE_CONNECTED = 3
+    NM_STATE_DISCONNECTED = 4
+
     PATH = "/org/freedesktop/NetworkManager"
     
     def initialize
