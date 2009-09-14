@@ -22,4 +22,4 @@ ruby-dbus can be installed with apt (checked on Ubuntu 9.04):
 * NetworkManager D-Bus Interface Specification:
   * http://projects.gnome.org/NetworkManager/developers/spec.html
 * D-Bus Specification:
-  *http://dbus.freedesktop.org/doc/dbus-specification.html
+  * http://dbus.freedesktop.org/doc/dbus-specification.html
