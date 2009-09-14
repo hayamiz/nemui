@@ -3,9 +3,9 @@
 
 NEMUI is the command line interface for Network Manager.
 
-= Installation
+== Installation
 
-== Prequisities
+=== Prequisities
 
 * Ruby 1.8.7 or later
 * ruby-dbus
@@ -15,7 +15,7 @@ ruby-dbus can be installed with apt (checked on Ubuntu 9.04):
     apt-get install libdbus-ruby
 
 
-= Reference
+== Reference
 
 * Network Manager:
   * http://projects.gnome.org/NetworkManager/
