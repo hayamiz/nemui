@@ -5,6 +5,16 @@ class NetworkManagerTest < Test::Unit::TestCase
     @nm = NEMUI::NetworkManager.instance
   end
 
+  def teardown
+    begin
+      @nm.wake
+    rescue DBus::Error => err
+      unless err.message =~ /Already awake/
+        raise err
+      end
+    end
+  end
+
   def test_sleep
     begin
       @nm.sleep
@@ -31,15 +41,5 @@ class NetworkManagerTest < Test::Unit::TestCase
                        @nm[:state])
     assert_instance_array_of(NEMUI::NetworkManagerSettings::Connection,
                              @nm[:active_connections])
-  end
-
-  def teardown
-    begin
-      @nm.wake
-    rescue DBus::Error => err
-      unless err.message =~ /Already awake/
-        raise err
-      end
-    end
   end
 end
