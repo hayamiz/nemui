@@ -5,7 +5,7 @@ require 'dbus'
 
 
 require 'nemui/interface'
-require 'nemui/properties'
+require 'nemui/dbus_object'
 require 'nemui/network_manager'
 require 'nemui/network_manager_settings'
 

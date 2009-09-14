@@ -3,9 +3,8 @@ require 'singleton'
 
 
 module NEMUI
-  class NetworkManager
-    include Singleton
-    include Properties
+  class NetworkManager < DBusObject
+    interface Interface::NETWORK_MANAGER
 
     NM_STATE_UNKNOWN = 0
     NM_STATE_ASLEEP = 1
@@ -14,23 +13,17 @@ module NEMUI
     NM_STATE_DISCONNECTED = 4
 
     PATH = "/org/freedesktop/NetworkManager"
-    
-    def initialize
-      bus = DBus::SystemBus.instance
-      service = bus.service(NM_SERVICE)
-      @default_iface = Interface::NETWORK_MANAGER
-      @proxy_obj = service.object(PATH)
-      @proxy_obj.introspect
-      
-      @nm_iface = @proxy_obj[Interface::NETWORK_MANAGER]
-    end
 
+    def self.instance
+      self.create(PATH)
+    end
+    
     def call(method, *args)
-      @nm_iface.__send__(method, *args)
+      @default_iface_obj.__send__(method, *args)
     end
 
     def get_devices()
-      devices = @nm_iface.GetDevices()[0].map do |dev_path|
+      devices = @default_iface_obj.GetDevices()[0].map do |dev_path|
         begin
           Device.create(dev_path)
         rescue NotImplementedDevice
@@ -47,7 +40,7 @@ module NEMUI
     end
 
     def wake(wak = true)
-      @nm_iface.Sleep(!wak)
+      @default_iface_obj.Sleep(!wak)
       nil
     end
 
@@ -56,72 +49,38 @@ module NEMUI
       nil
     end
     
-    class Device
+    class Device < DBusObject
       class NotImplementedDevice < Exception; end
+      interface Interface::DEVICE
       
       def self.create(path)
-        bus = DBus::SystemBus.instance
-        service = bus.service(NM_SERVICE)
-        obj = service.object(path)
-        obj.introspect
-        
-        if obj.has_iface?(Interface::WIRED)
-          Wired.new(obj)
-        elsif obj.has_iface?(Interface::WIRELESS)
-          Wireless.new(obj)
-        else
-          raise NotImplementedDevice.new(path)
+        self.__create__(path) do |obj|
+          if obj.has_iface?(Interface::WIRED)
+            Wired.create(path)
+          elsif obj.has_iface?(Interface::WIRELESS)
+            Wireless.create(path)
+          else
+            raise NotImplementedDevice.new(path)
+          end
         end
       end
 
-      class Wired
-        include Properties
-
-        def initialize(obj)
-          @proxy_obj = obj
-          @default_iface = Interface::WIRED
-          @wired_iface = @proxy_obj[Interface::NETWORK_MANAGER]
-        end
+      class Wired < Device
+        interface Interface::WIRED
       end
 
-      class Wireless
-        include Properties
-
-        def initialize(obj)
-          @proxy_obj = obj
-          @default_iface = Interface::WIRELESS
-          @wired_iface = @proxy_obj[Interface::NETWORK_MANAGER]
-        end
+      class Wireless < Device
+        interface Interface::WIRELESS
       end
     end
 
     module Connection
-      class Active
-        include Properties
+      class Active < DBusObject
+        interface Interface::CONNECTION_ACTIVE
 
         NM_ACTIVE_CONNECTION_STATE_UNKNOWN = 0
         NM_ACTIVE_CONNECTION_STATE_ACTIVATING = 1
         NM_ACTIVE_CONNECTION_STATE_ACTIVATED = 2
-      
-        def self.create(path)
-          bus = DBus::SystemBus.instance
-          service = bus.service(NM_SERVICE)
-          obj = service.object(path)
-          obj.introspect
-
-          unless obj.has_iface?(Interface::CONNECTION_ACTIVE)
-            raise InterfaceMismatchError.new(Interface::CONNECTION_ACTIVE)
-          end
-
-          self.new(obj)
-        end
-        
-        private
-        def initialize(obj)
-          @proxy_obj = obj
-          @default_iface = Interface::CONNECTION_ACTIVE
-          @conn_act_iface = @proxy_obj[Interface::CONNECTION_ACTIVE]
-        end
       end
     end
   end

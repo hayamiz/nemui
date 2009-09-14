@@ -1,7 +1,8 @@
 
 module NEMUI
-  class NetworkManagerSettings
-    class Connection
+  class NetworkManagerSettings < DBusObject
+    class Connection < DBusObject
+      interface "org.freedesktop.NetworkManager"
     end
   end
 end
